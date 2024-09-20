@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Icon } from "lucide-react";
 import React, { useState } from "react";
 import { HiClipboardDocumentCheck, HiLightBulb, HiMiniSquares2X2 } from "react-icons/hi2";
+import SelectCategory from "./_components/SelectCategory";
 
 const CreateCourse = () => {
   const StepperOptions = [
@@ -13,7 +14,7 @@ const CreateCourse = () => {
     },
     {
       id: 1,
-      name: "Topic and Desc",
+      name: "Topic & Desc",
       icon: <HiLightBulb />,
     },
     {
@@ -35,7 +36,7 @@ const CreateCourse = () => {
               <div className="flex flex-col items-center w-[50px] md:w-[100px]">
                 <div
                   className={`bg-gray-300 p-3 rounded-full text-white ${
-                    activeIndex == index && "bg-purple-500"
+                    activeIndex >= index && "bg-purple-500"
                   }`}
                 >
                   {item.icon}
@@ -44,8 +45,8 @@ const CreateCourse = () => {
               </div>
               {index != StepperOptions?.length - 1 && (
                 <div
-                  className={`h-1 w-[50px] md:[100px] lg:[170px] rounded-full bg-gray-300 ${
-                    activeIndex - 1 > index && "bg-purple-500"
+                  className={`h-1 w-[50px] md:w-[100px] lg:w-[170px] rounded-full bg-gray-300 ${
+                    activeIndex - 1  >= index && "bg-purple-500"
                   }`}
                 ></div>
               )}
@@ -55,6 +56,7 @@ const CreateCourse = () => {
       </div>
       <div className="px-10 md:px-20 lg:px-44 mt-10">
         {/* component  */}
+        {activeIndex == 0 ? <SelectCategory/> : null}
         {/* next and prevous button */}
         <div className="flex justify-between mt-10">
           <Button disabled={activeIndex == 0} onClick={() => setActiveIndex(activeIndex - 1)}>
