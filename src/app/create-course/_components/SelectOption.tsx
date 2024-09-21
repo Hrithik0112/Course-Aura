@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import {
   Select,
   SelectContent,
@@ -7,16 +7,27 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { UserInputContext } from "@/app/context/UseInputContext";
 
 const SelectOption = () => {
+
+    const {userCourseinput, setUserCourseinput} = useContext(UserInputContext)
+
+    function handleInputChange (fieldName: string, value : string){
+        setUserCourseinput((prev : any) =>({
+            ...prev,
+            [fieldName] : value,
+        })
+    )
+    }
   return (
     <div className="px-10 md:px-20 lg:px-44">
       <div className="grid grid-cols-2 gap-10">
         <div>
             <label className="text-sm">Difficulty Level:</label>
-          <Select>
+          <Select onValueChange={(value)=> handleInputChange("level", value)} defaultValue={userCourseinput?.level}>
             <SelectTrigger className="">
-              <SelectValue placeholder="Select" />
+              <SelectValue placeholder="Select"  />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="Beginner">Beginner</SelectItem>
@@ -27,7 +38,7 @@ const SelectOption = () => {
         </div>
         <div>
             <label className="text-sm">Course Duration:</label>
-          <Select>
+          <Select onValueChange={(value)=> handleInputChange("duration", value)} defaultValue={userCourseinput?.duration}>
             <SelectTrigger className="">
               <SelectValue placeholder="Select" />
             </SelectTrigger>
@@ -40,7 +51,7 @@ const SelectOption = () => {
         </div>
         <div>
             <label className="text-sm">Add Video:</label>
-          <Select>
+          <Select onValueChange={(value)=> handleInputChange("displayVideo", value)} defaultValue={userCourseinput?.displayVideo}>
             <SelectTrigger className="">
               <SelectValue placeholder="Select" />
             </SelectTrigger>
@@ -52,7 +63,7 @@ const SelectOption = () => {
         </div>
         <div>
             <label className="text-sm">No of Chapters:</label>
-          <Input type="number"/>
+          <Input type="number" onChange={(e)=> handleInputChange("noOfChapter", e.target.value)} defaultValue={userCourseinput?.noOfChnapter} />
         </div>
       </div>
     </div>

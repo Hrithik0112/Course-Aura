@@ -1,11 +1,12 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { Icon } from "lucide-react";
-import React, { useState } from "react";
+import { Icon, TrendingUp } from "lucide-react";
+import React, { useContext, useState } from "react";
 import { HiClipboardDocumentCheck, HiLightBulb, HiMiniSquares2X2 } from "react-icons/hi2";
 import SelectCategory from "./_components/SelectCategory";
 import TopicDescription from "./_components/TopicDescription";
 import SelectOption from "./_components/SelectOption";
+import { UserInputContext } from "../context/UseInputContext";
 
 const CreateCourse = () => {
   const StepperOptions = [
@@ -27,6 +28,30 @@ const CreateCourse = () => {
   ];
 
   const [activeIndex, setActiveIndex] = useState(0);
+  const { userCourseinput, setUserCourseinput } = useContext(UserInputContext);
+  function checkStatus() {
+    if (userCourseinput?.length == 0) {
+      return true;
+    }
+    if (
+      activeIndex == 0 &&
+      (userCourseinput?.category?.length == 0 || userCourseinput?.category == undefined)
+    ) {
+      return true;
+    }
+
+    if (
+      activeIndex == 2 &&
+      (userCourseinput?.level == undefined ||
+        userCourseinput?.duration == undefined ||
+        userCourseinput?.displayVideo == undefined ||
+        userCourseinput?.noOfChapter == undefined)
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  }
   return (
     <div>
       {/* steeper */}
@@ -48,7 +73,7 @@ const CreateCourse = () => {
               {index != StepperOptions?.length - 1 && (
                 <div
                   className={`h-1 w-[50px] md:w-[100px] lg:w-[170px] rounded-full bg-gray-300 ${
-                    activeIndex - 1  >= index && "bg-purple-500"
+                    activeIndex - 1 >= index && "bg-purple-500"
                   }`}
                 ></div>
               )}
@@ -58,18 +83,24 @@ const CreateCourse = () => {
       </div>
       <div className="px-10 md:px-20 lg:px-44 mt-10">
         {/* component  */}
-        {activeIndex == 0 ? <SelectCategory/> : 
-        activeIndex == 1? <TopicDescription/> : 
-        activeIndex == 2 ? <SelectOption/> : null}
+        {activeIndex == 0 ? (
+          <SelectCategory />
+        ) : activeIndex == 1 ? (
+          <TopicDescription />
+        ) : activeIndex == 2 ? (
+          <SelectOption />
+        ) : null}
         {/* next and prevous button */}
         <div className="flex justify-between mt-10">
           <Button disabled={activeIndex == 0} onClick={() => setActiveIndex(activeIndex - 1)}>
             Previous
           </Button>
-          {activeIndex < StepperOptions?.length - 1 && <Button onClick={() => setActiveIndex(activeIndex + 1)}>Next</Button>}
+          {activeIndex < StepperOptions?.length - 1 && (
+            <Button disabled={checkStatus()} onClick={() => setActiveIndex(activeIndex + 1)}>Next</Button>
+          )}
 
           {activeIndex == StepperOptions?.length - 1 && (
-            <Button onClick={() => setActiveIndex(activeIndex + 1)}>Generate Course layout</Button>
+            <Button disabled={checkStatus()} onClick={() => setActiveIndex(activeIndex + 1)}>Generate Course layout</Button>
           )}
         </div>
       </div>
