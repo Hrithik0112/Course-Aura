@@ -13,6 +13,7 @@ import uuid4 from "uuid4";
 import { useUser } from "@clerk/nextjs";
 import { db } from "@/configs/db";
 import { CourseList } from "@/configs/schema";
+import { useRouter } from "next/navigation";
 
 const CreateCourse = () => {
   const StepperOptions = [
@@ -38,6 +39,7 @@ const CreateCourse = () => {
   const { userCourseinput, setUserCourseinput } = useContext(UserInputContext);
 
   const { user } = useUser();
+  const router = useRouter()
   function checkStatus() {
     if (userCourseinput?.length == 0) {
       return true;
@@ -96,7 +98,7 @@ const CreateCourse = () => {
   };
 
   const SaveCourseLayoutInDb = async (courseLayout: any) => {
-    var id = uuid4();
+    var id = uuid4(); // course ID
     setLoading(true);
     const result = await db.insert(CourseList).values({
       courseId: id,
@@ -104,11 +106,12 @@ const CreateCourse = () => {
     level: userCourseinput?.level || '',  // Provide a default value if undefined
     category: userCourseinput?.category || '',  // Provide a default value if undefined
     courseOutput: courseLayout,
-    createdBy: user?.primaryEmailAddress?.emailAddress || 'anonymous',  // Provide a default value if undefined
+    createdBy: user?.primaryEmailAddress?.emailAddress!,  // Provide a default value if undefined
     userName: user?.fullName || undefined,  // This field is optional in the schema, so undefined is okay
     userProfileImage: user?.imageUrl || undefined,  // This field is optional in the schema, so undefined is okay
     });
     console.log("Finished")
+    router.replace('/create-course/'+ id)
     setLoading(false)
   };
   return (
