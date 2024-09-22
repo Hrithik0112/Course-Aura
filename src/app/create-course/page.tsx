@@ -9,6 +9,10 @@ import SelectOption from "./_components/SelectOption";
 import { UserInputContext } from "../context/UseInputContext";
 import { GenerateBasicCourselayout_AI } from "@/configs/AiModel";
 import LoadingDialouge from "./_components/LoadingDialouge";
+import uuid4 from "uuid4";
+import { useUser } from "@clerk/nextjs";
+import { db } from "@/configs/db";
+import { CourseList } from "@/configs/schema";
 
 const CreateCourse = () => {
   const StepperOptions = [
@@ -30,8 +34,10 @@ const CreateCourse = () => {
   ];
 
   const [activeIndex, setActiveIndex] = useState(0);
-  const [loading, setLoading] = useState<boolean>(false)
+  const [loading, setLoading] = useState<boolean>(false);
   const { userCourseinput, setUserCourseinput } = useContext(UserInputContext);
+
+  const { user } = useUser();
   function checkStatus() {
     if (userCourseinput?.length == 0) {
       return true;
@@ -55,19 +61,56 @@ const CreateCourse = () => {
       return false;
     }
   }
-  const GenerateCourseLayout = async()=> {
-    setLoading(true)
-    const BASIC_PROMPT ="Generate A Course Tutorial on Following Detail With field as Course Name, Description, Along with Chapter Name, about, Duration:"
+  const GenerateCourseLayout = async () => {
+    setLoading(true);
+    const BASIC_PROMPT =
+      "Generate A Course Tutorial on Following Detail With field as Course Name, Description, Along with Chapter Name, about, Duration:";
 
-    const USER_INPUT_PROMPT = 'Category: '+userCourseinput?.category+', Topic: '+userCourseinput?.topic+', Level: '+userCourseinput?.level+', Duration: '+userCourseinput?.duration+', NoOf Chapters:'+userCourseinput?.noOfChapter+', in JSON format'
+    const USER_INPUT_PROMPT =
+      "Category: " +
+      userCourseinput?.category +
+      ", Topic: " +
+      userCourseinput?.topic +
+      ", Level: " +
+      userCourseinput?.level +
+      ", Duration: " +
+      userCourseinput?.duration +
+      ", NoOf Chapters:" +
+      userCourseinput?.noOfChapter +
+      ", in JSON format";
 
-    const FINAL_PROMPT = BASIC_PROMPT+USER_INPUT_PROMPT
-    console.log(FINAL_PROMPT)
-    const res = await GenerateBasicCourselayout_AI.sendMessage(FINAL_PROMPT)
-    console.log(res.response?.text())
-    console.log(JSON.parse(res.response?.text()))
+    const FINAL_PROMPT = BASIC_PROMPT + USER_INPUT_PROMPT;
+    console.log(FINAL_PROMPT);
+    const res = await GenerateBasicCourselayout_AI.sendMessage(FINAL_PROMPT);
+    const responseText = await res.response.text(); // Await the text
+    console.log("Raw Response Text:", responseText);
+
+    // Check if the response contains any unexpected characters
+    const cleanResponseText = responseText.replace(/```json|```/g, ""); // Remove any markdown code blocks
+    console.log("Cleaned Response Text:", cleanResponseText);
+
+    const jsonResponse = JSON.parse(cleanResponseText); // Parse the cleaned text
+    console.log("Parsed JSON Response:", jsonResponse);
+    setLoading(false);
+    SaveCourseLayoutInDb(jsonResponse)
+  };
+
+  const SaveCourseLayoutInDb = async (courseLayout: any) => {
+    var id = uuid4();
+    setLoading(true);
+    const result = await db.insert(CourseList).values({
+      courseId: id,
+      name: userCourseinput?.topic || '',  // Provide a default value if undefined
+    level: userCourseinput?.level || '',  // Provide a default value if undefined
+    category: userCourseinput?.category || '',  // Provide a default value if undefined
+    courseOutput: courseLayout,
+    createdBy: user?.primaryEmailAddress?.emailAddress || 'anonymous',  // Provide a default value if undefined
+    userName: user?.fullName || undefined,  // This field is optional in the schema, so undefined is okay
+    userProfileImage: user?.imageUrl || undefined,  // This field is optional in the schema, so undefined is okay
+    });
+    console.log("Finished")
     setLoading(false)
-  }
+  };
   return (
     <div>
       {/* steeper */}
@@ -112,15 +155,19 @@ const CreateCourse = () => {
             Previous
           </Button>
           {activeIndex < StepperOptions?.length - 1 && (
-            <Button disabled={checkStatus()} onClick={() => setActiveIndex(activeIndex + 1)}>Next</Button>
+            <Button disabled={checkStatus()} onClick={() => setActiveIndex(activeIndex + 1)}>
+              Next
+            </Button>
           )}
 
           {activeIndex == StepperOptions?.length - 1 && (
-            <Button disabled={checkStatus()} onClick={() => GenerateCourseLayout()}>Generate Course layout</Button>
+            <Button disabled={checkStatus()} onClick={() => GenerateCourseLayout()}>
+              Generate Course layout
+            </Button>
           )}
         </div>
       </div>
-      <LoadingDialouge loading={loading}/>
+      <LoadingDialouge loading={loading} />
     </div>
   );
 };
